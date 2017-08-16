@@ -1,148 +1,95 @@
 package raiha.aha;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 请问1~99999999之间有多少个合数只能被写成两个质数相乘的形式.
  * @author raiha
  */
 public class Aha51 {
-	private static boolean huiwen(int k)  //判断回文数  
-	{  
-	    int[] a = new int[10];
-	    int i=0,j;  
-	    while (k>0)  
-	    {  
-	        a[i]=k%10;  
-	        k/=10;  
-	        i++;  
-	    }  
-	    for (j=0; j<i; j++)  
-	        if (a[j]!=a[i-j-1])  
-	            return false;  
+
+	/**
+	 * 是否质数.
+	 */
+	private static boolean isPrime(long num) {
+		if( num==2 ){
+			return true;
+		}
+		if( num<2 || num%2==0 ){
+			return false;
+		}
+	    for (int i=3; i*i<=num; i+=2){  
+	        if (num%i==0){  
+	            return false;
+	        }
+	    }
 	    return true;  
 	}  
 	  
-	  
-	private static int hwlength(int k)  //计算回文数的长度  
-	{  
-		int[] a = new int[10];
-	    int i=0;  
-	    while (k>0)  
-	    {  
-	        a[i]=k%10;  
-	        k/=10;  
-	        i++;  
-	    }  
-	    return (i);  
-	}  
-	  
-	  
-	private static boolean isPrime(int k)  //判断质数  
-	{  
-	    int i;  
-	    for (i=3; i*i<=k; i+=2)  
-	        if (k%i==0)  
-	            return false;  
-	    return true;  
-	}  
-	  
-	  
-    /** 
-     * 求 n 以内的所有素数 
-     * 
-     * @param n 范围 
-     * 
-     * @return n 以内的所有素数 
-     */  
-    private static List<Integer> getPrimes(int n) {  
-        List<Integer> result = new ArrayList<Integer>();  
-        result.add(2);  
-   
-        for (int i = 3; i <= n; i += 2) {  
-            if (!divisible(i, result)) {  
-                result.add(i);  
-            }  
-        }  
-   
-        return result;  
-    }  
-   
-    /** 
-     * 判断 n 是否能被整除 
-     * 
-     * @param n      要判断的数字 
-     * @param primes 包含素数的列表 
-     * 
-     * @return 如果 n 能被 primes 中任何一个整除，则返回 true。 
-     */  
-    private static boolean divisible(int n, List<Integer> primes) {  
-        for (Integer prime : primes) {  
-            if (n % prime == 0) {  
-                return true;  
-            }  
-        }  
-        return false;  
-    }  
-	  
-    /**
-     * 约数个数
-     * @param n
-     * @return
-     */
-	private static int size(int n){  
-		int N,i,r;  
-		
-        int s = 1;  
-        for (i = 2; i * i <= n; i++) {  
-            r = 0;  
-            while (n % i == 0) {  
-                r++;  
-                n /= i;  
-            }  
-            if (r > 0) {  
-                r++;  
-                s *= r;  
-            }  
-        }  
-        if (n > 1)  
-            s *= 2;  
-        
-        return s;
-	}  
-	
-	private static int getPrePrime(int n){
-		for (int i = n; i >2 ; i--) {
+	/**
+	 * 获取给定数字的上一个质数.
+	 */
+	private static long getPrePrime(long n){
+		for (long i = n; i >2 ; i--) {
 			if( isPrime(i) ){
 				return i;
 			}
 		}
 		throw new RuntimeException(""+n);
 	}
-	
-	private static void main(){
+
+	/**
+	 * 计算给定范围的质数个数.
+	 */
+	private static int primeCount(int end) {
+		boolean[] isPrime = new boolean[end + 1];
+		for (int i = 3; i <= end; i += 2)
+			isPrime[i] = true;
 		
-//		List<Integer> primes = getPrimes(99999999/2+1);
-//		System.out.println(primes.size());
+		isPrime[2] = true;
 		
-//		System.out.println(getPrePrime(99999999/2));
-		System.out.println(size(49999996));
-		/*
-		int c = 0;
-		for (int i = 1; i <= 99999999; i++) {
-			int s = size(i);
-			if( s<=4 ){
-				c++;
+		for (int i = 3; i <= Math.sqrt(end); i += 2) {
+			if (isPrime[i] == true) {
+				for (int j = i * i; j <= end; j += 2 * i)
+					isPrime[j] = false;
 			}
 		}
-		System.out.println(c);*/
+		
+		int primeNum = 0;
+		for (int i = 1; i <= end; i++) {
+			if (isPrime[i] == true)
+				primeNum++;
+		}
+		return primeNum;
+	}
+	
+	private static void main(long max){
+		
+		//例如max是400, 那么其实就是找1-20之间的乘法值
+		int calcCount = 0;//减去之前算过的质数
+		
+		int totalCount = 0;//最终有多少个质数相乘的合数
+		
+		for (long i = 2; i < Math.sqrt(max); i++) {
+			if( isPrime(i) ){
+				//找出对应的最大相乘质数
+				long maxPrime = getPrePrime(max/i);
+				int count = primeCount((int) maxPrime);//从2到xx的质数个数
+				count -= calcCount;
+
+				totalCount += (count);
+				calcCount++;
+				
+				System.out.println(i + " * " + maxPrime + " = " + (i*maxPrime) + ", count:" + count);
+			}
+		}
+		
+		System.out.println(totalCount);
 	}
 	
 	public static void main(String[] args) {
 		long t = System.currentTimeMillis();
 		
-		main();
+		main(99999999);
 		
 		System.out.println("cost " + (System.currentTimeMillis() - t) + "ms");//23783
 	}
